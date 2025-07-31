@@ -8,7 +8,7 @@ echo "======================================================="
 
 # Configuration
 PROJECT_NAME="4secrets-wedding-api"
-REPO_URL="https://github.com/WaseemMirzaa/image_uploading_node_api.git"
+REPO_URL="https://github.com/WaseemMirzaa/4secret-backend.git"
 PROJECT_DIR="/root/$PROJECT_NAME"
 PORT=3001
 
