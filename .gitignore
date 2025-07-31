@@ -1,0 +1,29 @@
+node_modules/
+.env
+.env.local
+src/images/*
+!src/images/.gitkeep
+logs/
+*.log
+
+# PM2 files
+.pm2/
+ecosystem.config.js.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Cloud functions (exclude from main repo)
+cloud-functions/
+github-deployment/
+
+# Deployment scripts with secrets
+*-with-secrets.sh
+*-real-credentials.*
+*.production.*
+.env.production
