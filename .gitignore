@@ -1,8 +1,15 @@
 node_modules/
 .env
 .env.local
+
+# Upload directories (keep structure, ignore files)
 src/images/*
 !src/images/.gitkeep
+src/files/*
+!src/files/.gitkeep
+uploads/
+
+# Logs
 logs/
 *.log
 
@@ -18,12 +25,27 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Cloud functions (exclude from main repo)
-cloud-functions/
-github-deployment/
+# Temporary and test files
+test-*
+*-test.*
+*.tmp
+*.temp
 
-# Deployment scripts with secrets
-*-with-secrets.sh
-*-real-credentials.*
+# Documentation and deployment files (keep only essential ones)
+DEPLOYMENT*.md
+DEPLOYMENT*.txt
+*-INSTRUCTIONS.*
+*-GUIDE.*
+*-DOCUMENTATION.*
+api-curl-commands.txt
+project-structure.txt
+
+# Backup files
+*.backup
+*.bak
+
+# Production secrets
 *.production.*
 .env.production
+*-with-secrets.sh
+*-real-credentials.*

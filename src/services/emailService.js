@@ -92,7 +92,7 @@ class EmailService {
     try {
       const brevoData = {
         sender: {
-          name: "4 Secrets Wedding",
+          name: "4-secrets Wedding Planner",
           email: from || process.env.EMAIL_FROM || 'support@brevo.4secrets-wedding-planner.de'
         },
         to: [

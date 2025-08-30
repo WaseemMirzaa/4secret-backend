@@ -102,87 +102,93 @@ class EmailController {
    * POST /api/email/send-invitation
    * Body: { email, inviterName }
    */
-  async sendInvitation(req, res) {
-    try {
-      const { email, inviterName } = req.body;
+/**
+ * Send invitation email
+ * POST /api/email/send-invitation
+ * Body: { email, inviterName }
+ */
+async sendInvitation(req, res) {
+  try {
+    const { email, inviterName } = req.body;
 
-      // Validate required fields
-      if (!email || !inviterName) {
-        return res.status(400).json({
-          error: 'Missing required fields',
-          required: ['email', 'inviterName'],
-          received: Object.keys(req.body)
-        });
-      }
+    // Validate required fields
+    if (!email || !inviterName) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        required: ['email', 'inviterName'],
+        received: Object.keys(req.body)
+      });
+    }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          error: 'Invalid email format',
-          email: email
-        });
-      }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        error: 'Invalid email format',
+        email: email
+      });
+    }
 
-      // Prepare invitation email data
-      const subject = `Du wurdest eingeladen, bei einer Hochzeits-Checkliste mitzuarbeiten 💍`;
-      const message = `Hi,
+    // Prepare invitation email data (new text from image)
+    const subject = `Du wurdest eingeladen, bei der Hochzeitsplanung mitzuarbeiten 💍`;
+    const message = `Hi,
 
-${inviterName} hat dich eingeladen, bei einer Hochzeits-Checkliste in der 4 Secrets Wedding App mitzuarbeiten! 👰🤵
+${inviterName} hat dich eingeladen, bei ihrer Hochzeitsplanung in der 4secrets – Wedding Planner App mitzuarbeiten.
+Dort könnt ihr gemeinsam an To-do-Listen arbeiten und die Planung Schritt für Schritt angehen.
 
-So kannst du die Einladung annehmen und gemeinsam an der To-do-Liste arbeiten:
+So kannst du die Einladung annehmen und direkt loslegen:
 
 📲 Lade die App herunter:
 – Für Android: https://play.google.com/store/apps/details?id=com.app.four_secrets_wedding_app
 – Für iOS: https://apps.apple.com/app/4-secrets-wedding/id[APP_ID]
 
-🔐 Registriere dich oder melde dich an.
+🔐 Registriere dich neu, falls du nicht länger als 7 Tage mitarbeiten möchtest, oder melde dich mit den Zugangsdaten der Person an, die dich eingeladen hat.
 
-📋 Gehe in der App zu "Hochzeits-Checklisten"
+📋 Gehe in der App zum Hochzeitsskit.
 
-✅ Dort findest du die Einladung von ${inviterName} – einfach annehmen und loslegen!
+✅ Dort findest du die Einladung – einfach annehmen und starten!
 
-Gemeinsam macht die Hochzeitsplanung noch mehr Spaß. 🌸
+Gemeinsam macht die Hochzeitsplanung gleich noch mehr Spaß. 🌸
 
-Bei Fragen stehen wir dir jederzeit zur Verfügung!
+Bei Fragen stehen wir dir jederzeit gerne zur Verfügung.
 
 Liebe Grüße
-Dein 4 Secrets Wedding Team`;
+Dein 4secrets – Wedding Planner Team`;
 
-      const emailData = {
+    const emailData = {
+      to: email,
+      subject: subject,
+      message: message
+    };
+
+    // Send the email
+    const result = await emailService.sendEmail(emailData);
+
+    logger.info('Invitation email sent via API:', {
+      to: email,
+      messageId: result.messageId
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Invitation email sent successfully',
+      data: {
         to: email,
         subject: subject,
-        message: message
-      };
+        messageId: result.messageId,
+        previewUrl: result.previewUrl
+      }
+    });
 
-      // Send the email
-      const result = await emailService.sendEmail(emailData);
+  } catch (error) {
+    logger.error('Error sending invitation email:', error);
 
-      logger.info('Invitation email sent via API:', {
-        to: email,
-        messageId: result.messageId
-      });
-
-      res.status(200).json({
-        success: true,
-        message: 'Invitation email sent successfully',
-        data: {
-          to: email,
-          subject: subject,
-          messageId: result.messageId,
-          previewUrl: result.previewUrl
-        }
-      });
-
-    } catch (error) {
-      logger.error('Error sending invitation email:', error);
-
-      res.status(500).json({
-        error: 'Failed to send invitation email',
-        message: error.message
-      });
-    }
+    res.status(500).json({
+      error: 'Failed to send invitation email',
+      message: error.message
+    });
   }
+}
 
   /**
    * Send declined invitation email
@@ -270,83 +276,85 @@ Dein 4 Secrets Wedding Team`;
    * POST /api/email/revoke-access
    * Body: { email, inviterName }
    */
-  async revokeAccess(req, res) {
-    try {
-      const { email, inviterName } = req.body;
+ async revokeAccess(req, res) {
+  try {
+    const { email, inviterName } = req.body;
 
-      // Validate required fields
-      if (!email || !inviterName) {
-        return res.status(400).json({
-          error: 'Missing required fields',
-          required: ['email', 'inviterName'],
-          received: Object.keys(req.body)
-        });
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          error: 'Invalid email format',
-          email: email
-        });
-      }
-
-      // Prepare revoked access email data
-      const subject = `Deine Mitarbeit an der Hochzeits-Checkliste wurde beendet 💐`;
-      const message = `Hi,
-
-${inviterName} hat deine Mitarbeit an der gemeinsamen Hochzeits-Checkliste in der 4 Secrets Wedding App beendet. 📝
-
-Du kannst die Checkliste ab sofort nicht mehr bearbeiten oder einsehen.
-
-Falls du Rückfragen hast, wende dich gerne direkt an ${inviterName}.
-
-Natürlich stehen wir dir auch bei allgemeinen Fragen zur App jederzeit zur Verfügung.
-
-📲 Die 4 Secrets Wedding App findest du hier:
-– Für Android: https://play.google.com/store/apps/details?id=com.app.four_secrets_wedding_app
-– Für iOS: https://apps.apple.com/app/4-secrets-wedding/id[APP_ID]
-
-Vielen Dank für dein bisheriges Mitwirken und alles Gute für dich! 💖
-
-Liebe Grüße
-Dein 4 Secrets Wedding Team`;
-
-      const emailData = {
-        to: email,
-        subject: subject,
-        message: message
-      };
-
-      // Send the email
-      const result = await emailService.sendEmail(emailData);
-
-      logger.info('Access revoked email sent via API:', {
-        to: email,
-        messageId: result.messageId
-      });
-
-      res.status(200).json({
-        success: true,
-        message: 'Access revoked email sent successfully',
-        data: {
-          to: email,
-          subject: subject,
-          messageId: result.messageId,
-          previewUrl: result.previewUrl
-        }
-      });
-
-    } catch (error) {
-      logger.error('Error sending access revoked email:', error);
-
-      res.status(500).json({
-        error: 'Failed to send access revoked email',
-        message: error.message
+    // Validate required fields
+    if (!email || !inviterName) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        required: ['email', 'inviterName'],
+        received: Object.keys(req.body)
       });
     }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        error: 'Invalid email format',
+        email: email
+      });
+    }
+
+    // Prepare revoked access email data
+    const subject = `Deine Mitarbeit an der Hochzeitsplanung in der 4secrets - Wedding Planner App wurde beendet 💐`;
+
+    // Email body with bold headers (HTML formatting)
+    const message = `
+
+Hi,<br>
+${inviterName} hat die gemeinsame Hochzeitsplanung in der 4secrets - Wedding Planner App beendet. 📝 Du kannst ab jetzt keine Listen mehr bearbeiten oder einsehen.<br>
+
+Falls du Rückfragen hast, wende dich gerne direkt an ${inviterName}. Natürlich stehen wir dir auch bei allgemeinen Fragen zur App jederzeit zur Verfügung. 📱<br>
+
+Die 4secrets - Wedding Planner App findest du hier:<br>
+– Für Android: <a href="https://play.google.com/store/apps/details?id=com.app.four_secrets_wedding_app">https://play.google.com/store/apps/details?id=com.app.four_secrets_wedding_app</a><br>
+– Für iOS: <a href="https://apps.apple.com/app/4-secrets-wedding/id[APP_ID]">https://apps.apple.com/app/4-secrets-wedding/id[APP_ID]</a><br>
+
+Vielen Dank für dein bisheriges Mitwirken und alles Gute für dich! 💖<br>
+
+Liebe Grüße<br>
+Dein 4secrets - Wedding Planner Team
+`;
+
+    const emailData = {
+      to: email,
+      subject: 'Deine Mitarbeit an der Hochzeitsplanung in der 4secrets - Wedding Planner App wurde beendet 💐',
+      message: message,
+      html: true // Ensure HTML formatting is used
+    };
+
+    // Send the email
+    const result = await emailService.sendEmail(emailData);
+
+    logger.info('Access revoked email sent via API:', {
+      to: email,
+      messageId: result.messageId
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Access revoked email sent successfully',
+      data: {
+        to: email,
+        subject: subject,
+        messageId: result.messageId,
+        previewUrl: result.previewUrl
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error sending access revoked email:', error);
+
+    res.status(500).json({
+      error: 'Failed to send access revoked email',
+      message: error.message
+    });
   }
+}
+
 
   /**
    * Get email service status and configuration info
@@ -397,7 +405,7 @@ Dein 4 Secrets Wedding Team`;
       });
     } catch (error) {
       logger.error('Error getting email preview:', error);
-      res.status(500).json({
+      res.status(500).json({ 
         error: 'Failed to get email preview',
         message: error.message
       });
